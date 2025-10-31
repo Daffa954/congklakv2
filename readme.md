@@ -20,7 +20,7 @@ Proyek ini dibangun menggunakan beberapa library, baik yang perlu diinstal maupu
 
 Aplikasi ini dikembangkan menggunakan *Integrated Development Environment* (IDE):
 
-* **[Silakan isi dengan nama IDE Anda, contoh: Visual Studio Code, PyCharm, Sublime Text, atau IDLE]**
+*** Visual Studio versi 1.105.1 Code**
 
 ---
 
