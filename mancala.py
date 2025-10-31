@@ -16,6 +16,11 @@ BUTTON_HOVER = (100, 160, 210)
 HIGHLIGHT_COLOR = (255, 255, 255, 80)
 GLOW_COLOR = (100, 200, 255, 100)
 
+# New colors for visual feedback
+SELECTED_PIT_COLOR = (255, 215, 0)  # Gold for selected pit
+RECEIVING_PIT_COLOR = (144, 238, 144)  # Light green for receiving stones
+CAPTURE_COLOR = (255, 100, 255)  # Magenta for captured pits
+
 PLAYER_ONE = 0
 PLAYER_TWO = 1
 PLAYER_ONE_STORE = 6
@@ -161,6 +166,15 @@ class MancalaGame:
         stones = self.board.pits[pit]
         self.board.pits[pit] = 0
         current_pit = pit
+        
+        # Visual feedback: highlight selected pit
+        if view:
+            view.selected_pit = pit
+            view.last_pit = None
+            view.captured_pits = []
+            view.draw_board()
+            pygame.display.update()
+            pygame.time.wait(800)  # Show selected pit longer
 
         while stones > 0:
             current_pit = (current_pit + 1) % TOTAL_PITS
@@ -173,12 +187,16 @@ class MancalaGame:
             stones -= 1
 
             if animate and view:
+                view.receiving_pit = current_pit
                 view.sync_positions_after_move()
                 view.draw_board()
                 pygame.display.update()
-                pygame.time.wait(450)
+                pygame.time.wait(650)  # Slower animation for each stone drop
 
         if view:
+            view.selected_pit = None
+            view.receiving_pit = None
+            view.last_pit = current_pit
             view.sync_positions_after_move()
 
         extra_turn = (
@@ -187,12 +205,45 @@ class MancalaGame:
 
         # Panggil capture HANYA jika tidak ada giliran tambahan
         if not extra_turn:
+            # Check if capture will happen and store the pits for visual feedback
+            if view:
+                captured = self.check_capture(current_pit, self.current_player)
+                if captured:
+                    view.captured_pits = captured
+                    view.draw_board()
+                    pygame.display.update()
+                    pygame.time.wait(1500)  # Show capture longer
+                    
             self.board.handle_capture(current_pit, self.current_player)
             # Pindah pemain
             self.current_player = 1 - self.current_player
 
         if view:
+            view.captured_pits = []
+            view.last_pit = None
             view.sync_positions_after_move()
+
+    def check_capture(self, last_pit, player):
+        """Check if a capture will happen and return the pits involved"""
+        if (
+            player == PLAYER_ONE
+            and 0 <= last_pit < PLAYER_ONE_STORE
+            and self.board.pits[last_pit] == 1
+        ):
+            opposite = 12 - last_pit
+            if self.board.pits[opposite] > 0:
+                return [last_pit, opposite]
+                
+        elif (
+            player == PLAYER_TWO
+            and PLAYER_ONE_STORE < last_pit < PLAYER_TWO_STORE
+            and self.board.pits[last_pit] == 1
+        ):
+            opposite = 12 - last_pit
+            if self.board.pits[opposite] > 0:
+                return [last_pit, opposite]
+        
+        return []
 
     def ai_move(self, view):
         move = self.ai.get_best_move(self.board, PLAYER_TWO)
@@ -204,6 +255,12 @@ class MancalaGame:
 class MancalaView:
     def __init__(self, game):
         self.game = game
+        
+        # Visual feedback attributes
+        self.selected_pit = None
+        self.receiving_pit = None
+        self.last_pit = None
+        self.captured_pits = []
 
         # Posisi tombol
         self.quit_rect = pygame.Rect(WIDTH - 170, 30, 140, 50)
@@ -247,7 +304,6 @@ class MancalaView:
             self.small_font = pygame.font.Font(None, 30)
             self.tiny_font = pygame.font.Font(None, 24)
         except:
-
             self.title_font = pygame.font.Font(None, 70)
             self.big_font = pygame.font.Font(None, 50)
             self.font = pygame.font.Font(None, 32)
@@ -593,7 +649,6 @@ class MancalaView:
 
         # Efek gradien
         for y in range(0, HEIGHT, 4):
-
             oscillation = (math.sin(y / 100 + time.time()) + 1) / 2
             brightness_mod = int(oscillation * 15)
 
@@ -604,7 +659,6 @@ class MancalaView:
             color = (r, g, b)
 
             pygame.draw.rect(screen, color, (0, y, WIDTH, 4))
-        # AKHIR PERBAIKAN
 
         self.pulse_value += 0.05 * self.pulse_direction
         if self.pulse_value > 1 or self.pulse_value < 0:
@@ -712,7 +766,18 @@ class MancalaView:
         # Lubang AI (Atas)
         for idx, pit in enumerate(range(12, 6, -1)):
             x, y = self.pit_coords[pit]
-            if self.game.current_player == PLAYER_TWO and self.game.is_valid_move(pit):
+            
+            # Determine pit color based on state
+            current_pit_color = PIT_COLOR
+            if pit == self.selected_pit:
+                current_pit_color = SELECTED_PIT_COLOR
+            elif pit == self.receiving_pit:
+                current_pit_color = RECEIVING_PIT_COLOR
+            elif pit in self.captured_pits:
+                current_pit_color = CAPTURE_COLOR
+            
+            # Glow effect for valid moves
+            if self.game.current_player == PLAYER_TWO and self.game.is_valid_move(pit) and not self.selected_pit:
                 alpha = int(100 + 80 * self.pulse_value)
                 highlight_surf = pygame.Surface(
                     (self.pit_radius * 2 + 20, self.pit_radius * 2 + 20),
@@ -729,8 +794,20 @@ class MancalaView:
                 )
 
             pygame.draw.circle(screen, (50, 55, 75), (x, y), self.pit_radius + 4)
-            pygame.draw.circle(screen, PIT_COLOR, (x, y), self.pit_radius)
+            pygame.draw.circle(screen, current_pit_color, (x, y), self.pit_radius)
             pygame.draw.circle(screen, (255, 255, 255, 30), (x, y), self.pit_radius, 2)
+            
+            # Extra highlight for selected/receiving/captured pits
+            if pit == self.selected_pit:
+                pygame.draw.circle(screen, (255, 255, 255, 200), (x, y), self.pit_radius, 5)
+                self.draw_text("SELECTED!", x, y - 80, self.small_font, SELECTED_PIT_COLOR)
+            elif pit == self.receiving_pit:
+                pygame.draw.circle(screen, (255, 255, 255, 150), (x, y), self.pit_radius, 4)
+                self.draw_text("RECEIVING", x, y - 80, self.small_font, RECEIVING_PIT_COLOR)
+            elif pit in self.captured_pits:
+                pygame.draw.circle(screen, (255, 255, 255, 200), (x, y), self.pit_radius, 5)
+                self.draw_text("CAPTURED!", x, y - 80, self.small_font, CAPTURE_COLOR)
+            
             self.draw_stones(self.game.board.pits[pit], x, y, pit)
             self.draw_text(str(6 - idx), x, y - 60, self.small_font, (200, 200, 220))
             stone_count = self.game.board.pits[pit]
@@ -742,7 +819,18 @@ class MancalaView:
         # Lubang Player (Bawah)
         for idx, pit in enumerate(range(0, 6)):
             x, y = self.pit_coords[pit]
-            if self.game.current_player == PLAYER_ONE and self.game.is_valid_move(pit):
+            
+            # Determine pit color based on state
+            current_pit_color = PIT_COLOR_2
+            if pit == self.selected_pit:
+                current_pit_color = SELECTED_PIT_COLOR
+            elif pit == self.receiving_pit:
+                current_pit_color = RECEIVING_PIT_COLOR
+            elif pit in self.captured_pits:
+                current_pit_color = CAPTURE_COLOR
+            
+            # Glow effect for valid moves
+            if self.game.current_player == PLAYER_ONE and self.game.is_valid_move(pit) and not self.selected_pit:
                 alpha = int(100 + 80 * self.pulse_value)
                 highlight_surf = pygame.Surface(
                     (self.pit_radius * 2 + 20, self.pit_radius * 2 + 20),
@@ -759,8 +847,20 @@ class MancalaView:
                 )
 
             pygame.draw.circle(screen, (50, 55, 75), (x, y), self.pit_radius + 4)
-            pygame.draw.circle(screen, PIT_COLOR_2, (x, y), self.pit_radius)
+            pygame.draw.circle(screen, current_pit_color, (x, y), self.pit_radius)
             pygame.draw.circle(screen, (255, 255, 255, 30), (x, y), self.pit_radius, 2)
+            
+            # Extra highlight for selected/receiving/captured pits
+            if pit == self.selected_pit:
+                pygame.draw.circle(screen, (255, 255, 255, 200), (x, y), self.pit_radius, 5)
+                self.draw_text("SELECTED!", x, y + 80, self.small_font, SELECTED_PIT_COLOR)
+            elif pit == self.receiving_pit:
+                pygame.draw.circle(screen, (255, 255, 255, 150), (x, y), self.pit_radius, 4)
+                self.draw_text("RECEIVING", x, y + 80, self.small_font, RECEIVING_PIT_COLOR)
+            elif pit in self.captured_pits:
+                pygame.draw.circle(screen, (255, 255, 255, 200), (x, y), self.pit_radius, 5)
+                self.draw_text("CAPTURED!", x, y + 80, self.small_font, CAPTURE_COLOR)
+            
             self.draw_stones(self.game.board.pits[pit], x, y, pit, True)
             self.draw_text(str(idx + 1), x, y + 60, self.small_font, (220, 220, 200))
             stone_count = self.game.board.pits[pit]
@@ -813,14 +913,31 @@ class MancalaView:
             self.stones_rect, "CHANGE STONES", self.stones_rect.collidepoint(mouse_pos)
         )
 
-        # Instruksi
+        # Instruksi dengan visual feedback legend
+        instruction_y = HEIGHT - 45
         self.draw_text(
             "Click on your pits (1-6) to make a move",
             WIDTH // 2,
-            HEIGHT - 20,
+            instruction_y,
             self.small_font,
             (150, 150, 170),
         )
+        
+        # Legend for colors
+        legend_y = HEIGHT - 20
+        legend_x_start = WIDTH // 2 - 350
+        
+        # Selected pit legend
+        pygame.draw.circle(screen, SELECTED_PIT_COLOR, (legend_x_start, legend_y), 8)
+        self.draw_text("Selected", legend_x_start + 15, legend_y, self.tiny_font, (200, 200, 200), center=False)
+        
+        # Receiving pit legend
+        pygame.draw.circle(screen, RECEIVING_PIT_COLOR, (legend_x_start + 150, legend_y), 8)
+        self.draw_text("Receiving", legend_x_start + 165, legend_y, self.tiny_font, (200, 200, 200), center=False)
+        
+        # Captured pit legend
+        pygame.draw.circle(screen, CAPTURE_COLOR, (legend_x_start + 300, legend_y), 8)
+        self.draw_text("Captured", legend_x_start + 315, legend_y, self.tiny_font, (200, 200, 200), center=False)
 
         # Overlay AI Thinking
         if ai_thinking:
@@ -903,7 +1020,6 @@ def main():
                     elif view.stones_rect.collidepoint(mouse_pos):
                         view.show_stones_menu = True
 
-                    
                     elif game.current_player == PLAYER_ONE:
                         # Gunakan koordinat dari 'view' untuk deteksi
                         for pit, (pit_x, pit_y) in view.pit_coords.items():
@@ -960,13 +1076,13 @@ def main():
             view.draw_board(ai_thinking=True)
             pygame.display.update()
 
-            # Tentukan jeda berdasarkan kesulitan
+            # Tentukan jeda berdasarkan kesulitan - slower thinking time
             if game.difficulty == DIFFICULTY_EASY:
-                think_time = 500
+                think_time = 1000  # 1 second
             elif game.difficulty == DIFFICULTY_MEDIUM:
-                think_time = 1000
+                think_time = 1500  # 1.5 seconds
             else:
-                think_time = 1500
+                think_time = 2000  # 2 seconds
 
             pygame.time.wait(think_time)
             game.ai_move(view)
