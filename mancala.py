@@ -266,7 +266,7 @@ class MancalaView:
         self.quit_rect = pygame.Rect(WIDTH - 170, 30, 140, 50)
 
         # Tombol di bawah papan
-        bottom_button_y = HEIGHT - 90
+        bottom_button_y = HEIGHT - 80  # MOVED DOWN: Was HEIGHT - 90
         button_width = 260
         button_height = 60
         button_spacing = 30
@@ -886,7 +886,7 @@ class MancalaView:
         )
 
         # Tampilan Pengaturan
-        settings_y = self.board_rect.bottom + 35
+        settings_y = self.board_rect.bottom + 20  # MOVED UP: Was +35
         diff_text = f"DIFFICULTY: {self.get_difficulty_name()}"
         stones_text = f"STONES: {self.get_stones_name()}"
         self.draw_text(
@@ -914,30 +914,32 @@ class MancalaView:
         )
 
         # Instruksi dengan visual feedback legend
-        instruction_y = HEIGHT - 45
+        instruction_y = self.board_rect.bottom + 42  # MOVED: Was HEIGHT - 45
         self.draw_text(
             "Click on your pits (1-6) to make a move",
             WIDTH // 2,
             instruction_y,
-            self.small_font,
+            self.small_font,  # Kept small_font
             (150, 150, 170),
         )
         
-        # Legend for colors
-        legend_y = HEIGHT - 20
-        legend_x_start = WIDTH // 2 - 350
-        
+        # Legend for colors (MOVED TO TOP LEFT)
+        legend_x_start = 30
+        legend_y_start = 30
+        legend_y_spacing = 25
+
         # Selected pit legend
-        pygame.draw.circle(screen, SELECTED_PIT_COLOR, (legend_x_start, legend_y), 8)
-        self.draw_text("Selected", legend_x_start + 15, legend_y, self.tiny_font, (200, 200, 200), center=False)
+        pygame.draw.circle(screen, SELECTED_PIT_COLOR, (legend_x_start, legend_y_start), 8)
+        self.draw_text("Selected", legend_x_start + 15, legend_y_start, self.tiny_font, (200, 200, 200), center=False)
         
         # Receiving pit legend
-        pygame.draw.circle(screen, RECEIVING_PIT_COLOR, (legend_x_start + 150, legend_y), 8)
-        self.draw_text("Receiving", legend_x_start + 165, legend_y, self.tiny_font, (200, 200, 200), center=False)
+        pygame.draw.circle(screen, RECEIVING_PIT_COLOR, (legend_x_start, legend_y_start + legend_y_spacing), 8)
+        self.draw_text("Receiving", legend_x_start + 15, legend_y_start + legend_y_spacing, self.tiny_font, (200, 200, 200), center=False)
         
         # Captured pit legend
-        pygame.draw.circle(screen, CAPTURE_COLOR, (legend_x_start + 300, legend_y), 8)
-        self.draw_text("Captured", legend_x_start + 315, legend_y, self.tiny_font, (200, 200, 200), center=False)
+        pygame.draw.circle(screen, CAPTURE_COLOR, (legend_x_start, legend_y_start + 2 * legend_y_spacing), 8)
+        self.draw_text("Captured", legend_x_start + 15, legend_y_start + 2 * legend_y_spacing, self.tiny_font, (200, 200, 200), center=False)
+
 
         # Overlay AI Thinking
         if ai_thinking:
@@ -1095,3 +1097,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
