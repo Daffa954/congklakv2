@@ -16,15 +16,10 @@ Proyek ini dibangun menggunakan beberapa library, baik yang perlu diinstal maupu
 
 ---
 
-## 2. IDE Pengembangan
-
-Aplikasi ini dikembangkan menggunakan *Integrated Development Environment* (IDE):
-
-* **[Silakan isi dengan nama IDE Anda, contoh: Visual Studio Code, PyCharm, Sublime Text, atau IDLE]**
 
 ---
 
-## 3. Langkah Detail Instalasi dan Penggunaan
+## 2. Langkah Detail Instalasi dan Penggunaan
 
 Ini adalah panduan langkah demi langkah untuk menjalankan game ini di komputer baru yang belum memiliki Python.
 
