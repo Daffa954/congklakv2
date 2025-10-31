@@ -85,7 +85,7 @@ Sekarang kita perlu menginstal "bahan" Pygame yang dibutuhkan oleh game Anda.
 2.  **(Alternatif) Jika Langkah 1 Gagal**:
     Buka Terminal/CMD secara manual (dari Start Menu). Anda harus "pindah" ke folder proyek Anda. Gunakan perintah `cd` (change directory). Contoh:
     ```bash
-    # Ganti "NamaAnda" dan nama folder Anda sesuai jalur di komputer Anda
+    # Ganti "NamaAnda" dan nama folder Anda sesuai jalur di komputer Anda, jangan lupa pastikan tempat menyimpan file yang sudah di unzip.
     cd C:\Users\NamaAnda\Documents\congklakv2-main
     ```
 
@@ -107,7 +107,7 @@ Setelah semua persiapan selesai, Anda siap bermain.
     Pastikan jendela Terminal/CMD Anda masih terbuka dan berada di dalam folder proyek (Anda akan melihat nama folder Anda di *prompt*, misal `C:\... \congklakv2-main>`).
 
 2.  **Jalankan File Utama**:
-    Ketik perintah berikut untuk menjalankan file game utama (`mancala.py`). Tekan Enter.
+    Ketik perintah dibawah ini untuk menjalankan file game utama (`mancala.py`). Tekan Enter.
     ```bash
     python mancala.py
     ```
