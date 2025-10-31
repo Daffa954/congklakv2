@@ -930,15 +930,15 @@ class MancalaView:
 
         # Selected pit legend
         pygame.draw.circle(screen, SELECTED_PIT_COLOR, (legend_x_start, legend_y_start), 8)
-        self.draw_text("Selected", legend_x_start + 15, legend_y_start, self.tiny_font, (200, 200, 200), center=False)
+        self.draw_text("Selected", legend_x_start + 15, legend_y_start - 7, self.tiny_font, (200, 200, 200), center=False)
         
         # Receiving pit legend
         pygame.draw.circle(screen, RECEIVING_PIT_COLOR, (legend_x_start, legend_y_start + legend_y_spacing), 8)
-        self.draw_text("Receiving", legend_x_start + 15, legend_y_start + legend_y_spacing, self.tiny_font, (200, 200, 200), center=False)
+        self.draw_text("Receiving", legend_x_start + 15, legend_y_start + legend_y_spacing - 7, self.tiny_font, (200, 200, 200), center=False)
         
         # Captured pit legend
         pygame.draw.circle(screen, CAPTURE_COLOR, (legend_x_start, legend_y_start + 2 * legend_y_spacing), 8)
-        self.draw_text("Captured", legend_x_start + 15, legend_y_start + 2 * legend_y_spacing, self.tiny_font, (200, 200, 200), center=False)
+        self.draw_text("Captured", legend_x_start + 15, legend_y_start + 2 * legend_y_spacing - 7, self.tiny_font, (200, 200, 200), center=False)
 
 
         # Overlay AI Thinking
